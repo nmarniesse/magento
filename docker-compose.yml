@@ -1,0 +1,71 @@
+version: '3.7'
+
+services:
+  php:
+    image: 'jellyfish/magento-php-dev:master'
+    environment:
+      APP_ENV: '${APP_ENV:-prod}'
+      COMPOSER_HOME: '/var/www/.composer'
+    volumes:
+      - './:/srv/magento'
+      - '${HOST_COMPOSER_HOME:-~/.composer}:/var/www/.composer'
+    working_dir: '/srv/magento'
+    command: 'php'
+    user: 'www-data'
+    init: true
+    networks:
+      - 'magento'
+
+  fpm:
+    image: 'jellyfish/magento-php-dev:master'
+    environment:
+      APP_ENV: '${APP_ENV:-prod}'
+    volumes:
+      - './:/srv/magento'
+    working_dir: '/srv/magento'
+    command: 'php-fpm -F'
+    networks:
+      - 'magento'
+
+  httpd:
+    image: 'httpd:2.4'
+    environment:
+      APP_ENV: '${APP_ENV:-prod}'
+    depends_on:
+      - 'fpm'
+    ports:
+      - '${DOCKER_PORT_HTTP:-8080}:80'
+    volumes:
+      - './:/srv/magento:ro'
+      - './docker/httpd.conf:/usr/local/apache2/conf/httpd.conf:ro'
+      - './docker/magento.conf:/usr/local/apache2/conf/vhost.conf:ro'
+    networks:
+      - 'magento'
+
+  mysql:
+    image: 'mysql:8.0.26'
+    command: '--default-authentication-plugin=mysql_native_password --log_bin_trust_function_creators=1'
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_USER: 'akeneo'
+      MYSQL_PASSWORD: 'akeneo'
+      MYSQL_DATABASE: 'akeneo'
+#    volumes:
+#      - './docker/initdb.d:/docker-entrypoint-initdb.d:ro'
+    ports:
+      - '${DOCKER_PORT_MYSQL:-33009}:3306'
+    networks:
+      - 'magento'
+
+  elasticsearch:
+    image: 'docker.elastic.co/elasticsearch/elasticsearch:7.16.2'
+    environment:
+      ES_JAVA_OPTS: '${ES_JAVA_OPTS:--Xms512m -Xmx512m}'
+      discovery.type: 'single-node'
+    ports:
+      - '${DOCKER_PORT_ELASTICSEARCH:-9210}:9200'
+    networks:
+      - 'magento'
+
+networks:
+  magento:
