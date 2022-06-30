@@ -50,8 +50,8 @@ services:
       MYSQL_USER: 'akeneo'
       MYSQL_PASSWORD: 'akeneo'
       MYSQL_DATABASE: 'akeneo'
-#    volumes:
-#      - './docker/initdb.d:/docker-entrypoint-initdb.d:ro'
+    volumes:
+      - './data:/var/lib/mysql'
     ports:
       - '${DOCKER_PORT_MYSQL:-33009}:3306'
     networks:

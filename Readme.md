@@ -22,6 +22,14 @@ Credentials are admin/admin123
 mysql -h 127.0.0.1 --port 33009 -u akeneo -pakeneo
 ```
 
+# Elasticsearch
+
+To reindex all data:
+
+```bash
+docker-compose run --rm -u www-data php bin/magento indexer:reindex
+```
+
 # API
 
 ```bash
